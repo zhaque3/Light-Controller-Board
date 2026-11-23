@@ -1,57 +1,22 @@
 # Light Controller Board
 
+<p align="center">
+  <img src="images/light-board-render.png" width="600">
+</p>
+
 **Project:** Light Controller Board, the lighting controller for the University of Alberta EcoCar prototype vehicle (Sally).
 
 **Purpose:** This board takes the vehicle's 12 V and 7 V supply rails and drives up to four external LED light panels (brake, signal and running lights). Each panel channel has its own 12 V to 5 V buck converter, an eFuse with current monitoring, an addressable LED data line, and a temperature sensor readback. An STM32G4 MCU handles light patterns, panel monitoring, a local UI (OLED + light mode buttons), USB, and CAN bus communication with the other boards on the vehicle.
-
-<!-- Add a render or photo of the board here, e.g.
-<p align="center">
-  <img src="..." width="400">
-</p>
--->
 
 ---
 
 ## Table of contents
 
-1. [Repository layout](#repository-layout)
-2. [Key features](#key-features)
-3. [Hardware details](#hardware-details)
-4. [Light panel daughter board](#light-panel-daughter-board)
-5. [Manufacturing files](#manufacturing-files)
-6. [Firmware overview](#firmware-overview)
-
----
-
-## Repository layout
-
-```
-Light-Board Firmware/
-└── LIGHT_BOARD_Firmware/               # STM32CubeIDE project
-    ├── LIGHT_BOARD.ioc                 # STM32CubeMX pin / peripheral configuration
-    ├── Core/Src/main.c                 # Application code
-    ├── Core/Src/ssd1306*.c             # OLED driver
-    └── Drivers/                        # STM32G4 HAL + CMSIS
-
-Light-Board Hardware/
-└── Rev 1/
-    ├── ECO Car Brakes.kicad_pro        # Main KiCad project (open this)
-    ├── ECO Car Brakes.kicad_sch        # Top-level schematic
-    ├── ECO Car Brakes.kicad_pcb        # 4-layer controller board layout
-    ├── PowerSheet.kicad_sch            # Power input, 3.3 V regulator, panel channels
-    ├── protection_circuitry.kicad_sch  # 12 V / 7 V input eFuses
-    ├── panel_power.kicad_sch           # Per-panel buck + eFuse + output connector (x4)
-    ├── Microcontroller.kicad_sch       # MCU, USB and CAN sub-sheets
-    ├── MCU.kicad_sch                   # STM32G474, programming header, OLED, buttons
-    ├── VBUS.kicad_sch                  # USB-C + ESD protection
-    ├── CAN Bus.kicad_sch               # CAN FD transceiver + vehicle connector
-    ├── Light Panel/                    # LED panel daughter board (KiCad + Gerbers)
-    ├── bom/ibom.html                   # Interactive BOM
-    ├── production/                     # JLCPCB fabrication outputs (Gerbers, BOM, CPL)
-    └── ECO Car Brakes-backups/         # KiCad automatic project backups
-```
-
-> The KiCad project is named `ECO Car Brakes` for historical reasons; it is the Light Controller Board.
+1. [Key features](#key-features)
+2. [Hardware details](#hardware-details)
+3. [Light panel daughter board](#light-panel-daughter-board)
+4. [Manufacturing files](#manufacturing-files)
+5. [Firmware overview](#firmware-overview)
 
 ---
 
