@@ -19,12 +19,20 @@
 3. [Hardware details](#hardware-details)
 4. [Light panel daughter board](#light-panel-daughter-board)
 5. [Manufacturing files](#manufacturing-files)
+6. [Firmware overview](#firmware-overview)
 
 ---
 
 ## Repository layout
 
 ```
+Light-Board Firmware/
+└── LIGHT_BOARD_Firmware/               # STM32CubeIDE project
+    ├── LIGHT_BOARD.ioc                 # STM32CubeMX pin / peripheral configuration
+    ├── Core/Src/main.c                 # Application code
+    ├── Core/Src/ssd1306*.c             # OLED driver
+    └── Drivers/                        # STM32G4 HAL + CMSIS
+
 Light-Board Hardware/
 └── Rev 1/
     ├── ECO Car Brakes.kicad_pro        # Main KiCad project (open this)
@@ -124,3 +132,48 @@ Fabrication outputs in `production/` were generated with the KiCad JLCPCB Fabric
 * `designators.csv`, `netlist.ipc`
 
 An interactive BOM for assembly is in `bom/ibom.html`.
+
+---
+
+## Firmware overview
+
+The firmware is an STM32CubeIDE project for the STM32G474RET6, found in `Light-Board Firmware/LIGHT_BOARD_Firmware/`. It is a bare-metal (no RTOS) super-loop using the STM32 HAL, with the application code in `Core/Src/main.c`.
+
+To build: open the folder in STM32CubeIDE (File > Import > Existing Projects into Workspace), build the `Debug` configuration, and flash through the ST-Link header with `LIGHT_BOARD Debug.launch`.
+
+### WS2812B LED driver
+
+- The LED data line for panel 1 is driven by **TIM3 CH2 PWM with DMA**.
+- Each colour bit is encoded as one PWM period: a duty of 5 counts for a `0` and 10 counts for a `1`, packed in GRB order (24 bits per LED).
+- The DMA buffer starts with a 300 µs low reset period (which also absorbs the spurious first pulse) and ends with a short trailing pad so the last bit completes cleanly.
+- Transfers are non-blocking: `HAL_TIM_PWM_PulseFinishedCallback` stops the timer and clears a busy flag when the frame is done.
+- The strip is only refreshed when the selected colour changes.
+
+### Light mode buttons
+
+- On startup all LEDs are set to white.
+- The on-board buttons latch a colour: **SW4** red, **SW5** green, **SW2** blue.
+
+### Panel temperature monitoring
+
+- Each panel's MCP9700A sensor is read on its own ADC channel:
+
+  | Panel | Pin | ADC channel |
+  |-------|-----|-------------|
+  | 1     | PA6 | ADC2_IN3    |
+  | 2     | PA7 | ADC2_IN4    |
+  | 3     | PA8 | ADC5_IN1    |
+  | 4     | PA9 | ADC5_IN2    |
+
+- ADC2 and ADC5 are calibrated at startup. Each reading uses a 640.5-cycle sampling time (the sensor has a high output impedance and no filter cap) and averages 8 samples.
+- The voltage is converted using the MCP9700 transfer function: 500 mV at 0 °C, 10 mV/°C.
+
+### OLED display
+
+- An SSD1306 OLED on I2C1 is refreshed once per second with the temperature of each panel.
+- A panel reading below 18 °C is shown as "Panel N is off" (the sensor isn't connected or powered).
+
+### Current status
+
+- Only panel 1's LED output is driven so far; panels 2–4 are monitored for temperature only.
+- The FDCAN, USB and eFuse ILM ADC peripherals are configured in CubeMX but not yet used by the application.

@@ -3,3 +3,6 @@
 .history/
 \#auto_saved_files\#
 _autosave-*
+Debug/
+Release/
+.metadata/
