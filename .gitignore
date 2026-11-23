@@ -1,0 +1,5 @@
+# KiCad lock files and local history
+*.lck
+.history/
+\#auto_saved_files\#
+_autosave-*
